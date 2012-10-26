@@ -422,6 +422,7 @@ struct msmsdcc_host {
 	struct device_attribute	max_bus_bw;
 	struct device_attribute	polling;
 	struct device_attribute idle_timeout;
+	int saved_tuning_phase;
 	struct device_attribute auto_cmd19_attr;
 };
 
