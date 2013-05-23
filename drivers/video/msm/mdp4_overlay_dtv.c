@@ -674,9 +674,9 @@ int mdp4_dtv_off(struct platform_device *pdev)
 
 	vctrl = &vsync_ctrl_db[cndx];
 
-	mdp4_dtv_wait4vsync(cndx);
-
 	wake_up_interruptible_all(&vctrl->wait_queue);
+
+	mdp4_dtv_wait4vsync(cndx);
 
 	pipe = vctrl->base_pipe;
 	if (pipe != NULL) {
