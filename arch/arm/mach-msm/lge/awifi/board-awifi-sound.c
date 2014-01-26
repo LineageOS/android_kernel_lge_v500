@@ -29,18 +29,19 @@
 #include <linux/platform_data/hds_fsa8008.h>
 #include <mach/board_lge.h>
 #endif
-#ifdef CONFIG_SWITCH_MAX1462X 
+#ifdef CONFIG_SWITCH_MAX1462X
 #include <linux/platform_data/hds_max1462x.h>
 #include <mach/board_lge.h>
 #endif
 #include "../../../../sound/soc/codecs/wcd9310.h"
 
-
+#if defined(CONFIG_SND_SOC_TPA2028D) || defined (CONFIG_SND_SOC_TPA2028D_DUAL_SPEAKER)
 #define TPA2028D_ADDRESS (0xB0>>1)
 #define MSM_AMP_EN (PM8921_GPIO_PM_TO_SYS(19))
 #define AGC_COMPRESIION_RATE        0
 #define AGC_OUTPUT_LIMITER_DISABLE  1
-#define AGC_FIXED_GAIN              15
+#define AGC_FIXED_GAIN              10
+#endif
 //[AUDIO_BSP][AWIFI] ilda.jung@lge.com 2013-04-16 enable dual speaker [START]
 #ifdef CONFIG_SND_SOC_TPA2028D_DUAL_SPEAKER
 #define MSM_AMP2_EN (PM8921_GPIO_PM_TO_SYS(20))
