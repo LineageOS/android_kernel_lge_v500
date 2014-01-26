@@ -120,7 +120,9 @@ VREG_CONSUMERS(L14) = {
 };
 VREG_CONSUMERS(L15) = {
 	REGULATOR_SUPPLY("8921_l15",		NULL),
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT1188S
 	REGULATOR_SUPPLY("touch_vdd",		NULL),
+#endif
 };
 VREG_CONSUMERS(L16) = {
 	REGULATOR_SUPPLY("8921_l16",		NULL),
@@ -767,7 +769,7 @@ apq8064_rpm_regulator_init_data[] __devinitdata = {
 	RPM_LDO(L8,  0, 1, 0, 2800000, 2800000, NULL,          0,     0),
 #endif
 	RPM_LDO(L9,  0, 1, 0, 3000000, 3000000, NULL,          0,     0),
-	RPM_LDO(L10, 0, 1, 0, 2800000, 2800000, NULL,          0,     0),
+	RPM_LDO(L10, 0, 1, 0, 2900000, 2900000, NULL,          0,     0),
 #if defined(CONFIG_MACH_LGE)
 	RPM_LDO(L11, 0, 1, 0, 2850000, 2850000, NULL,          0,     0),
 #else
@@ -779,23 +781,19 @@ apq8064_rpm_regulator_init_data[] __devinitdata = {
 	RPM_LDO(L13, 0, 0, 0, 2220000, 2220000, NULL,          0,     0),
 	RPM_LDO(L14, 0, 1, 0, 1800000, 1800000, NULL,          0,     0),
 //sangwooha.ha@lge.com 20120813 GK bring up ==> LCD issue fix
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT1188S
 	RPM_LDO(L15, 0, 1, 0, 3300000, 3300000, NULL,          0,    19),
-	RPM_LDO(L16, 0, 1, 0, 2800000, 2800000, NULL,          0,     0),
-#if defined(CONFIG_MACH_LGE)
-	RPM_LDO(L17, 0, 1, 0, 2850000, 2850000, NULL,          0,     0),
 #else
-	RPM_LDO(L17, 0, 1, 0, 2000000, 2000000, NULL,          0,     0),
+	RPM_LDO(L15, 0, 1, 0, 1800000, 2950000, NULL,          0,     0),
 #endif
+	RPM_LDO(L16, 0, 1, 0, 2800000, 2800000, NULL,          0,     0),
+	RPM_LDO(L17, 0, 1, 0, 2850000, 2850000, NULL,          0,     0),
 #ifdef CONFIG_SLIMPORT_ANX7808
 	RPM_LDO(L18, 0, 1, 0, 1100000, 1100000, NULL,          0,     0),
 #else
 	RPM_LDO(L18, 0, 1, 0, 1300000, 1800000, "8921_s4",     0,     0),
 #endif
-#if defined(CONFIG_MACH_LGE)
 	RPM_LDO(L21, 0, 1, 0, 1800000, 1950000, NULL,          0,     0),
-#else
-	RPM_LDO(L21, 0, 1, 0, 1050000, 1050000, NULL,          0,     0),
-#endif
 //sangwooha.ha@lge.com 20120813 GK bring up ==> LCD issue fix
 	RPM_LDO(L22, 0, 1, 0, 1800000, 1800000, NULL,          0,     0),
 	RPM_LDO(L23, 0, 1, 0, 1800000, 1800000, NULL,          0,     0),
