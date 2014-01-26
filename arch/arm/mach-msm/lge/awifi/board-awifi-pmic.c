@@ -21,6 +21,9 @@
 #include <linux/leds.h>
 #include <linux/leds-pm8xxx.h>
 #include <linux/mfd/pm8xxx/pm8xxx-adc.h>
+#ifdef CONFIG_BATTERY_TEMP_CONTROL
+#include <linux/platform_data/battery_temp_ctrl.h>
+#endif
 #include <asm/mach-types.h>
 #include <asm/mach/mmc.h>
 #include <mach/msm_bus_board.h>
@@ -731,6 +734,7 @@ static struct pm8xxx_adc_platform_data apq8064_pm8921_adc_pdata = {
 	.adc_num_board_channel	= ARRAY_SIZE(apq8064_pm8921_adc_channels_data),
 	.adc_prop		= &apq8064_pm8921_adc_data,
 	.adc_mpp_base		= PM8921_MPP_PM_TO_SYS(1),
+	.apq_therm		= true,
 };
 
 static struct pm8xxx_mpp_platform_data
@@ -892,7 +896,7 @@ apq8064_pm8921_bms_pdata __devinitdata = {
 	.v_cutoff			= 3400,
 	.max_voltage_uv			= MAX_VOLTAGE_MV * 1000,
 	.rconn_mohm			= 18,
-	.shutdown_soc_valid_limit	= 25,
+	.shutdown_soc_valid_limit	= 20,
 	.adjust_soc_low_threshold	= 25,
 	.chg_term_ua   = CHG_TERM_MA * 1000,
 	.normal_voltage_calc_ms		= 20000,
@@ -966,7 +970,7 @@ static struct pm8xxx_keypad_platform_data keypad_data = {
 };
 #if defined (CONFIG_PMIC8XXX_VIBRATOR) || ((CONFIG_MACH_APQ8064_AWIFI) && (CONFIG_TSPDRV))
 static struct pm8xxx_vibrator_platform_data pm8xxx_vibrator_pdata = {
-	.initial_vibrate_ms = 500,
+	.initial_vibrate_ms = 0,
 	.max_timeout_ms = 30000,
 	.level_mV =2300,
 };
@@ -988,7 +992,7 @@ apq8064_pm8921_platform_data __devinitdata = {
 	.bms_pdata		= &apq8064_pm8921_bms_pdata,
 	.ccadc_pdata		= &apq8064_pm8xxx_ccadc_pdata,
 #if defined (CONFIG_PMIC8XXX_VIBRATOR) || ((CONFIG_MACH_APQ8064_AWIFI) && (CONFIG_TSPDRV))
-	.vibrator_pdata     =   &pm8xxx_vibrator_pdata,
+	.vibrator_pdata	=	&pm8xxx_vibrator_pdata,
 #endif
 
 };
