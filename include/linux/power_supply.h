@@ -155,6 +155,17 @@ enum power_supply_property {
 	POWER_SUPPLY_PROP_VCHG,
 	POWER_SUPPLY_PROP_IUSB,
 #endif
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+        POWER_SUPPLY_PROP_BATT_TEMP_ADC,
+        POWER_SUPPLY_PROP_ORIG_CAPACITY,
+        POWER_SUPPLY_PROP_CABLE_INFO_ADC,
+        POWER_SUPPLY_PROP_REV_ADC,
+        POWER_SUPPLY_PROP_PA_THERM_VAL,
+        POWER_SUPPLY_PROP_PA_THERM_ADC,
+        POWER_SUPPLY_PROP_GET_SET_CUR,
+        POWER_SUPPLY_PROP_VZW_CHG_STATE,
+        POWER_SUPPLY_PROP_CHARGING_ENABLED,
+#endif
 /* [END] */
 };
 
@@ -246,6 +257,9 @@ extern void power_supply_changed(struct power_supply *psy);
 extern int power_supply_am_i_supplied(struct power_supply *psy);
 extern int power_supply_set_battery_charged(struct power_supply *psy);
 extern int power_supply_set_current_limit(struct power_supply *psy, int limit);
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+extern int power_supply_set_present(struct power_supply *psy, bool enable);
+#endif
 extern int power_supply_set_online(struct power_supply *psy, bool enable);
 extern int power_supply_set_scope(struct power_supply *psy, int scope);
 extern int power_supply_set_charge_type(struct power_supply *psy, int type);

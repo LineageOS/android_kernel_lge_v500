@@ -22,3 +22,10 @@ config MACH_APQ8064_AWIFI070U
 		bool "APQ8064 A 070 Only"
 	help
 	  Support for the LGE A 070 only device.
+
+config MACH_APQ8064_ALTEV
+        depends on ARCH_APQ8064
+        select MACH_LGE
+                bool "APQ8064 A VZW LTE Only"
+        help
+          Support for the LGE A VZW LTE only device.

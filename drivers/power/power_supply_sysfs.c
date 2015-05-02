@@ -141,6 +141,24 @@ static ssize_t power_supply_show_property(struct device *dev,
 	else if (off >= POWER_SUPPLY_PROP_IUSB)
 		return sprintf(buf, "%d\n", value.intval);
 #endif
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	else if (off >= POWER_SUPPLY_PROP_BATT_TEMP_ADC)
+		return sprintf(buf, "%d\n", value.intval);
+	else if (off >= POWER_SUPPLY_PROP_ORIG_CAPACITY)
+		return sprintf(buf, "%d\n", value.intval);
+	else if (off == POWER_SUPPLY_PROP_CABLE_INFO_ADC)
+		return sprintf(buf, "%d\n", value.intval);
+	else if (off == POWER_SUPPLY_PROP_REV_ADC)
+		return sprintf(buf, "%d\n", value.intval);
+	else if (off == POWER_SUPPLY_PROP_PA_THERM_VAL)
+		return sprintf(buf, "%d\n", value.intval);
+	else if (off == POWER_SUPPLY_PROP_PA_THERM_ADC)
+		return sprintf(buf, "%d\n", value.intval);
+	else if (off == POWER_SUPPLY_PROP_GET_SET_CUR)
+		return sprintf(buf, "%d\n", value.intval);
+	else if (off == POWER_SUPPLY_PROP_VZW_CHG_STATE)
+		return sprintf(buf, "%d\n", value.intval);
+#endif
 	return sprintf(buf, "%d\n", value.intval);
 }
 
@@ -197,7 +215,11 @@ static ssize_t pseudo_batt_show_property(struct device *dev,
 	return 0;
 }
 
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+extern int pseudo_batt_set_new(struct pseudo_batt_info_type*);
+#else
 extern int pseudo_batt_set(struct pseudo_batt_info_type*);
+#endif
 
 static ssize_t pseudo_batt_store_property(struct device *dev,
 		struct device_attribute *attr,
@@ -215,7 +237,11 @@ static ssize_t pseudo_batt_store_property(struct device *dev,
 			goto out;
 		}
 	}
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	pseudo_batt_set_new(&info);
+#else
 	pseudo_batt_set(&info);
+#endif
 	ret = count;
 out:
 	return ret;
@@ -343,6 +369,16 @@ static struct device_attribute power_supply_attrs[] = {
 #ifdef CONFIG_MACH_APQ8064_AWIFI
 	POWER_SUPPLY_ATTR(usb_in_voltage),
 	POWER_SUPPLY_ATTR(usb_in_ampere),
+#endif
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	POWER_SUPPLY_ATTR(batt_temp_adc),
+	POWER_SUPPLY_ATTR(orig_capacity),
+	POWER_SUPPLY_ATTR(cable_adc),
+	POWER_SUPPLY_ATTR(rev_adc),
+	POWER_SUPPLY_ATTR(pa_therm_val),
+	POWER_SUPPLY_ATTR(pa_therm_adc),
+	POWER_SUPPLY_ATTR(get_set_cur),
+	POWER_SUPPLY_ATTR(vzw_chg),
 #endif
 /* [END] */
 };

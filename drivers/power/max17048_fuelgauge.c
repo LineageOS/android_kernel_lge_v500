@@ -25,7 +25,11 @@
 #include <linux/delay.h>
 #include <linux/io.h>
 #include <mach/msm_iomap.h>
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+#include <linux/power/bq24262_charger.h>
+#else
 #include <linux/mfd/pm8xxx/pm8921-charger.h>
+#endif
 
 /* BEGIN: hiro.kwon@lge.com 2011-12-22 RCOMP update when the temperature of the cell changes */
 #include <linux/mfd/pm8xxx/pm8xxx-adc.h>
@@ -61,7 +65,11 @@
 #define MAX17048_BATTERY_FULL		95		/* Tuning Value */
 #define MAX17048_TOLERANCE		10		/* Tuning Value */
 
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+extern void bq24262_charger_force_update_batt_psy(void);
+#else
 extern void pm8921_charger_force_update_batt_psy(void);
+#endif
 
 struct max17048_chip {
 	struct i2c_client		*client;
@@ -80,6 +88,9 @@ struct max17048_chip {
 	/* Interface with Android */
 	int voltage;		/* Battery Voltage   (Calculated from vcell) */
 	int capacity;		/* Battery Capacity  (Calculated from soc) */
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	int orig_capacity;
+#endif
 	max17048_status status;	/* State Of max17048 */
 /* BEGIN: hiro.kwon@lge.com 2011-12-22 RCOMP update when the temperature of the cell changes */
 	u8			starting_rcomp;
@@ -280,6 +291,43 @@ static int max17048_write_config(struct i2c_client *client)
 }
 
 #ifdef CONFIG_LGE_PM
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+/*
+ * This function is used to get capacity of maxim custom fuel gauge model.
+ */
+#define EMPTY_SOC       0
+static int max17048_get_capacity_from_soc(int *orig_soc)
+{
+	long batt_soc = 0;
+	uint32_t buf[2];
+	long adjust_soc = 0;
+
+	if (reference == NULL) {
+		return 100;
+	}
+
+	buf[0] = (reference->soc & 0x0000FF00) >> 8;
+	buf[1] = (reference->soc & 0x000000FF);
+
+	batt_soc = ((buf[0] * 256) + buf[1]) * 19531; /* 0.001953125 */
+	pr_info("%s: batt_soc is %d(0x%02x:0x%02x):%ld\n", __func__, (int)(batt_soc/10000000), buf[0], buf[1], batt_soc);
+
+	*orig_soc = batt_soc / 10000000;
+
+	adjust_soc = 9300000;  //GK, CMCC, Awifi
+
+	batt_soc /= adjust_soc;
+	pr_info("%s: adjust_soc = %ld, batt_soc = %ld orig = %d\n", __func__, adjust_soc, batt_soc, *orig_soc);
+
+	if (batt_soc < 0)
+		batt_soc = 0;
+
+	if (batt_soc > 100)
+		batt_soc = 100;
+
+	return batt_soc;
+}
+#else /* CONFIG_MACH_APQ8064_ALTEV */
 /*
  * This function is used to get capacity of maxim custom fuel gauge model.
  */
@@ -319,6 +367,7 @@ static int max17048_get_capacity_from_soc(void)
 /* END : dukyong.kim@lge.com 2012-03-17 Display All SOC 0 ~ 100% */
 	return batt_soc;
 }
+#endif /* CONFIG_MACH_APQ8064_ALTEV */
 #endif
 
 static int max17048_need_quickstart(int charging)
@@ -499,6 +548,9 @@ static int max17048_update(struct i2c_client *client)
 {
 	struct max17048_chip *chip = i2c_get_clientdata(client);
 	int ret;
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	int orig_cap;
+#endif
 
 /* BEGIN: hiro.kwon@lge.com 2011-12-22 RCOMP update when the temperature of the cell changes */
 	max17048_set_rcomp_by_temperature();
@@ -537,7 +589,12 @@ static int max17048_update(struct i2c_client *client)
 	/* convert raw data to usable data */
 	chip->voltage = (chip->vcell * 5) >> 2;	/* vcell * 1.25 mV */
 #ifdef CONFIG_LGE_PM
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	chip->capacity = max17048_get_capacity_from_soc(&orig_cap);
+	chip->orig_capacity = orig_cap;
+#else
 	chip->capacity = max17048_get_capacity_from_soc();
+#endif
 #else
 	chip->capacity = chip->soc >> 8;
 #endif
@@ -561,11 +618,18 @@ static int max17048_update(struct i2c_client *client)
 static void max17048_work(struct work_struct *work)
 {
 	struct max17048_chip *chip;
-	int charging = 0, source = 0;
+	int charging = 0;
+#ifndef CONFIG_MACH_APQ8064_ALTEV
+	int source = 0;
+#endif
 
 	chip = container_of(work, struct max17048_chip, work.work);
 
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	charging = bq24262_prop_is_charging();
+#else
 	charging = pm8921_is_battery_charging(&source);
+#endif
 	printk(KERN_INFO "%s: chip->status %d, charging %d\n", __func__, chip->status, charging);
 	switch (chip->status) {
 	case MAX17048_RESET:
@@ -621,6 +685,9 @@ static irqreturn_t max17048_interrupt_handler(int irq, void *data)
 		return IRQ_HANDLED;
 	schedule_work(&reference->alert_work);
 #endif
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	bq24262_charger_force_update_batt_psy();
+#endif
 	//pm8921_charger_force_update_batt_psy();
 	max17048_clear_interrupt(reference->client);
 	return IRQ_HANDLED;
@@ -630,11 +697,17 @@ static irqreturn_t max17048_interrupt_handler(int irq, void *data)
 void max17048_power_quickstart(void)
 {
 	int charging = 0;
+#ifndef CONFIG_MACH_APQ8064_ALTEV
 	int source = 0;
+#endif
 
 	pr_err("[mansu.lee] %s.\n",__func__);
 
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	charging = bq24262_prop_is_charging();
+#else
 	charging = pm8921_is_battery_charging(&source);
+#endif
 
 	max17048_quickstart(reference->client);
 	/* best effort delay time for read new soc */
@@ -655,6 +728,19 @@ ssize_t max17048_show_volt(struct device *dev,
 	int voltage;
 	if (reference == NULL)
 		return snprintf(buf, PAGE_SIZE, "ERROR\n");
+
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	if (lge_power_test_flag == 1) {
+		cancel_delayed_work(&reference->work);
+
+		max17048_power_quickstart();
+		voltage = ((reference->vcell * 5) >> 2);
+
+		schedule_delayed_work(&reference->work, HZ);
+
+		return snprintf(buf, PAGE_SIZE, "%d\n", voltage);
+	}
+#else
 #ifdef CONFIG_BATTERY_MAX17048
 	/* 120317 mansu.lee@lge.com Implement Power test SOC quickstart */
 	if(lge_power_test_flag == 1){
@@ -674,6 +760,7 @@ ssize_t max17048_show_volt(struct device *dev,
 		return snprintf(buf, PAGE_SIZE, "%d\n", voltage);
 	}
 	/* 120317 mansu.lee@lge.com */
+#endif
 #endif
 	return snprintf(buf, PAGE_SIZE, "%d\n", (reference->vcell * 5) >> 2);
 }
@@ -706,9 +793,36 @@ ssize_t max17048_show_soc(struct device *dev,
 			 char *buf)
 {
 	int level;
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	int orig_cap;
+#endif
 
 	if (reference == NULL)
 		return snprintf(buf, PAGE_SIZE, "ERROR\n");
+
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	if (lge_power_test_flag == 1) {
+		cancel_delayed_work(&reference->work);
+
+		max17048_power_quickstart();
+		level = max17048_get_capacity_from_soc(&orig_cap);
+
+		schedule_delayed_work(&reference->work, HZ);
+
+		if (level != 0) {
+			if (level >= 99)
+				level = (level * 915) /1000;
+			else
+				level = (level * 100) /100;
+		}
+		if (level > 100)
+			level = 100;
+		else if (level < 0)
+			level = 0;
+
+		return snprintf(buf, PAGE_SIZE, "%d\n", level);
+	}
+#else
 #ifdef CONFIG_BATTERY_MAX17048
 	/* 120307 mansu.lee@lge.com Implement Power test SOC quickstart */
 	if(lge_power_test_flag == 1){
@@ -740,6 +854,7 @@ ssize_t max17048_show_soc(struct device *dev,
 		return snprintf(buf, PAGE_SIZE, "%d\n", level);
 	}
 	/* 120307 mansu.lee@lge.com Implement Power test SOC quickstart */
+#endif
 #endif
 	/* START: mansu.lee@lge.com, 2011-12-23 change the level value */
 	/* accordig to battery SOC calculate method change. */
@@ -794,6 +909,18 @@ ssize_t max17048_store_status(struct device *dev,
 }
 DEVICE_ATTR(state, 0664, max17048_show_status, max17048_store_status);
 /* sysfs interface : for AT Commands [END] */
+
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+/* SYMBOLS to use outside of this module */
+int __max17048_get_orig_capacity(void)
+{
+        if (reference == NULL)  /* if fuel gauge is not initialized, */
+                return 100;                     /* return Dummy Value */
+
+                return reference->orig_capacity;
+}
+EXPORT_SYMBOL(__max17048_get_orig_capacity);
+#endif
 
 /* SYMBOLS to use outside of this module */
 int __max17048_get_capacity(void)

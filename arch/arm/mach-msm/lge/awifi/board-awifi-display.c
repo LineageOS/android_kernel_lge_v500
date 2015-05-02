@@ -1545,11 +1545,17 @@ void __init apq8064_init_fb(void)
 	}
 /* LGE_CHANGE_END: ilhwan.ahn@lge.com, 2013.05.27,  For the one-binary, runtime configuration */
 #if defined(CONFIG_LGE_BACKLIGHT_CABC)
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	platform_add_devices(awifi_panel_devices,ARRAY_SIZE(awifi_panel_devices));
+	pr_warn("(%s) : Enable CABC.\n", __func__);
+	pr_debug("%d\n", ARRAY_SIZE(awifi_panel_devices_noCABC));
+#else
 	if (lge_board_rev > HW_REV_1_0) {
 	    platform_add_devices(awifi_panel_devices,ARRAY_SIZE(awifi_panel_devices));
     } else {
         platform_add_devices(awifi_panel_devices_noCABC,ARRAY_SIZE(awifi_panel_devices_noCABC));
     }
+#endif
 #else
     platform_add_devices(awifi_panel_devices,ARRAY_SIZE(awifi_panel_devices));
 #endif

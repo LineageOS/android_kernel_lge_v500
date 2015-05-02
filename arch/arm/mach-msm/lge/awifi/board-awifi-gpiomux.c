@@ -2150,13 +2150,109 @@ static struct msm_gpiomux_config apq8064_fuel_gauge_configs[] __initdata = {
 };
 #endif
 
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+static struct gpiomux_setting reserved_pin_pd_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_DOWN,
+	.dir  = GPIOMUX_IN,
+};
+
+static struct gpiomux_setting reserved_pin_pu_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_UP,
+	.dir  = GPIOMUX_IN,
+};
+
+static struct gpiomux_setting reserved_pin_pn_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_NONE,
+	.dir  = GPIOMUX_IN,
+};
+
+static struct msm_gpiomux_config gpio_func_reserved_pin_config[] __initdata = {
+	/* BOOT_CONFIG_0_1_6 IN/PD */
+	{
+		.gpio = 4,
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &reserved_pin_pd_cfg,
+		},
+	},
+	/* AMBIENT_INT IN/PU */
+	{
+		.gpio = 22,
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &reserved_pin_pu_cfg,
+		},
+	},
+	/* I2C_SENSOR_SDA IN/PD */
+	{
+		.gpio = 24,
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &reserved_pin_pd_cfg,
+		},
+	},
+	/* I2C_SENSOR_SCL IN/PD */
+	{
+		.gpio = 25,
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &reserved_pin_pd_cfg,
+		},
+	},
+	/* COMPASS_INT IN/PD */
+	{
+		.gpio = 28,
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &reserved_pin_pd_cfg,
+		},
+	},
+	/* PWR_INT IN/NP */
+	{
+		.gpio = 29,
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &reserved_pin_pn_cfg,
+		},
+	},
+	/* FUEL_GAUGE_INT_N IN/NP */
+	{
+		.gpio = 36,
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &reserved_pin_pn_cfg,
+		},
+	},
+	/* BOOT_CONFIG_0_1_6 IN/PD */
+	{
+		.gpio = 50,
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &reserved_pin_pd_cfg,
+		},
+	},
+	/* ACCEL_INT IN/PD */
+	{
+		.gpio = 56,
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &reserved_pin_pd_cfg,
+		},
+	},
+	/* BOOT_CONFIG_0_1_6 IN/PD */
+	{
+		.gpio = 87,
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &reserved_pin_pd_cfg,
+		},
+	},
+};
+#endif
 
 void __init apq8064_init_gpiomux(void)
 {
 	int rc;
 	int platform_version = socinfo_get_platform_version();
-//	hw_rev_type lge_bd_rev = HW_REV_EVB1;//20120112 jungyub.jee@lge.com SD detect change
-
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+        hw_rev_type lge_bd_rev = HW_REV_EVB1;//20120112 jungyub.jee@lge.com SD detect change
+#endif
 	rc = msm_gpiomux_init(NR_GPIO_IRQS);
 	if (rc) {
 		pr_err(KERN_ERR "msm_gpiomux_init failed %d\n", rc);
@@ -2369,6 +2465,15 @@ void __init apq8064_init_gpiomux(void)
 				ARRAY_SIZE(apq8064_fuel_gauge_configs));
 #endif
 
-//20120112 jungyub.jee@lge.com SD detect change
+#ifdef CONFIG_BQ24262_CHARGER
+	msm_gpiomux_install(mpq8064_gsbi5_i2c_configs,
+			ARRAY_SIZE(mpq8064_gsbi5_i2c_configs));
+#endif
 
+//20120112 jungyub.jee@lge.com SD detect change
+/* Set specified GPIO configure to IN/PD in suspend */
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	msm_gpiomux_install(gpio_func_reserved_pin_config,
+			ARRAY_SIZE(gpio_func_reserved_pin_config));
+#endif
 }
