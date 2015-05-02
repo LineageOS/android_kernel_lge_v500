@@ -97,6 +97,9 @@ extern struct platform_device apq8064_device_uart_gsbi7;
 extern struct platform_device apq8064_device_qup_i2c_gsbi1;
 extern struct platform_device apq8064_device_qup_i2c_gsbi3;
 extern struct platform_device apq8064_device_qup_i2c_gsbi4;
+#ifdef CONFIG_BQ24262_CHARGER
+extern struct platform_device apq8064_device_qup_i2c_gsbi5;
+#endif
 #if defined(CONFIG_SND_SOC_TPA2028D_DUAL_SPEAKER) || (defined(CONFIG_MACH_LGE)&& defined (CONFIG_TOUCHSCREEN_S340010_SYNAPTICS_TK))
 extern struct platform_device apq8064_device_qup_i2c_gsbi7;
 #endif

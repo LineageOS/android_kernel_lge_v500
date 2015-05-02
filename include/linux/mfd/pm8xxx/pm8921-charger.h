@@ -217,7 +217,9 @@ enum pm8921_charger_source {
  * from the charging source
  */
 int pm8921_charger_enable(bool enable);
+#ifdef CONFIG_BATTERY_MAX17043
 void pm8921_charger_force_update_batt_psy(void);
+#endif
 
 #if defined(CONFIG_PM8921_CHARGER) || defined(CONFIG_PM8921_CHARGER_MODULE)
 void pm8921_charger_vbus_draw(unsigned int mA);

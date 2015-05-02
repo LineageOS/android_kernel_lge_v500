@@ -452,6 +452,16 @@ static void smpl_count(void)
 		printk("[SMPL_CNT] ===> not smpl boot!!!!!\n");
 	}
 }
+
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+void write_high_temp_power_off(void)
+{
+        char* file_name = "/data/is_high_temp_pwr_off";
+        printk("======= write_high_temp_power_off =======\n");
+        write_file(file_name, "1");
+}
+EXPORT_SYMBOL_GPL(write_high_temp_power_off);
+#endif
 #endif
 #endif
 

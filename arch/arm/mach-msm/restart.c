@@ -317,6 +317,7 @@ reset:
 	}
 #endif
 #ifdef CONFIG_LGE_PM
+#ifndef CONFIG_MACH_APQ8064_ALTEV
         pr_notice("check battery fet\n");
         if(pm8921_chg_batfet_get_ext() > 0 && lge_get_factory_boot())
         {
@@ -325,6 +326,7 @@ reset:
                 pr_notice("wait release fet\n");
                 mdelay(7000);
         }
+#endif
 #endif
 
 	__raw_writel(1, msm_tmr0_base + WDT0_RST);

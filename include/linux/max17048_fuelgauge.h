@@ -45,6 +45,9 @@ struct max17048_platform_data {
 	struct max17048_ocv_to_soc_data		*soc_cal_data;
 	/* END: mansu.lee@lge.com 2011-01-16 */
 };
+#ifdef CONFIG_BATTERY_MAX17048
+extern int __max17048_get_orig_capacity(void);
+#endif
 /* END: hiro.kwon@lge.com 2011-12-22 */
 extern int __max17048_get_capacity(void);
 extern int __max17048_get_voltage(void);
