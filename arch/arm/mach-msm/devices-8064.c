@@ -660,6 +660,15 @@ struct platform_device mpq8064_device_qup_i2c_gsbi5 = {
 	.resource	= resources_qup_i2c_gsbi5,
 };
 
+#ifdef CONFIG_BQ24262_CHARGER
+struct platform_device apq8064_device_qup_i2c_gsbi5 = {
+        .name           = "qup_i2c",
+        .id             = 5,
+        .num_resources  = ARRAY_SIZE(resources_qup_i2c_gsbi5),
+        .resource       = resources_qup_i2c_gsbi5,
+};
+#endif
+
 //BEGIN: 0019632 chanha.park@lge.com 2012-05-31
 //ADD: 0019632: [F200][BT] Bluetooth board bring-up
 /* GSBI 6 used into UARTDM Mode */

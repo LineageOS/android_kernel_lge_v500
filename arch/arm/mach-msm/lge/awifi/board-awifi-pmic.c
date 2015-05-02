@@ -55,6 +55,9 @@
 #ifdef CONFIG_PM8XXXX_VIBRATOR
 #include <linux/mfd/pm8xxx/vibrator.h>
 #endif
+#ifdef CONFIG_BQ24262_CHARGER
+#include <linux/power/bq24262_charger.h>
+#endif
 
 // [[LGE_BSP_AUDIO, jeremy.pi@lge.com, Audience eS325 ALSA SoC Audio driver
 #if defined(CONFIG_MACH_APQ8064_GKATT) || defined(CONFIG_MACH_APQ8064_GKOPENHK) || defined(CONFIG_MACH_APQ8064_GKOPENTW) || defined(CONFIG_MACH_APQ8064_GKSHBSG) || defined(CONFIG_MACH_APQ8064_AWIFI)
@@ -686,6 +689,24 @@ static struct pm8xxx_led_platform_data apq8064_pm8921_leds_pdata = {
 #endif
 
 static struct pm8xxx_adc_amux apq8064_pm8921_adc_channels_data[] = {
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	{"vcoin", CHANNEL_VCOIN, CHAN_PATH_SCALING2, AMUX_RSV1,
+		ADC_DECIMATION_TYPE2, ADC_SCALE_DEFAULT},
+	{"vph_pwr", CHANNEL_VPH_PWR, CHAN_PATH_SCALING2, AMUX_RSV1,
+		ADC_DECIMATION_TYPE2, ADC_SCALE_DEFAULT},
+	{"batt_therm", CHANNEL_BATT_THERM, CHAN_PATH_SCALING1, AMUX_RSV1,
+		ADC_DECIMATION_TYPE2, ADC_SCALE_BATT_THERM},
+	{"usbin", CHANNEL_USBIN, CHAN_PATH_SCALING3, AMUX_RSV1,
+		ADC_DECIMATION_TYPE2, ADC_SCALE_DEFAULT},
+	{"pmic_therm", CHANNEL_DIE_TEMP, CHAN_PATH_SCALING1, AMUX_RSV1,
+		ADC_DECIMATION_TYPE2, ADC_SCALE_PMIC_THERM},
+	{"xo_therm", CHANNEL_MUXOFF, CHAN_PATH_SCALING1, AMUX_RSV0,
+		ADC_DECIMATION_TYPE2, ADC_SCALE_XOTHERM},
+	{"pa_therm0", ADC_MPP_1_AMUX3, CHAN_PATH_SCALING1, AMUX_RSV1,
+		ADC_DECIMATION_TYPE2, ADC_SCALE_APQ_THERM},
+	{"usb_id_device", ADC_MPP_1_AMUX6, CHAN_PATH_SCALING1, AMUX_RSV1,
+		ADC_DECIMATION_TYPE2, ADC_SCALE_DEFAULT},
+#else
 	{"vcoin", CHANNEL_VCOIN, CHAN_PATH_SCALING2, AMUX_RSV1,
 		ADC_DECIMATION_TYPE2, ADC_SCALE_DEFAULT},
 	{"vbat", CHANNEL_VBAT, CHAN_PATH_SCALING2, AMUX_RSV1,
@@ -718,6 +739,7 @@ static struct pm8xxx_adc_amux apq8064_pm8921_adc_channels_data[] = {
 		ADC_DECIMATION_TYPE2, ADC_SCALE_APQ_THERM},
 	{"usb_id_device", ADC_MPP_1_AMUX6, CHAN_PATH_SCALING1, AMUX_RSV1,
 		ADC_DECIMATION_TYPE2, ADC_SCALE_DEFAULT},
+#endif
 };
 
 static struct pm8xxx_adc_properties apq8064_pm8921_adc_data = {
@@ -764,6 +786,7 @@ static int apq8064_pm8921_therm_mitigation[] = {
 	325,
 };
 
+#ifndef CONFIG_MACH_APQ8064_ALTEV
 #ifdef CONFIG_LGE_PM
 /*
  * J1 battery characteristic
@@ -862,6 +885,7 @@ apq8064_pm8921_chg_pdata __devinitdata = {
 	.rconn_mohm		= 18,
 };
 #endif
+#endif /* CONFIG_MACH_APQ8064_ALTEV */
 
 static struct pm8xxx_ccadc_platform_data
 apq8064_pm8xxx_ccadc_pdata = {
@@ -869,6 +893,7 @@ apq8064_pm8xxx_ccadc_pdata = {
 	.calib_delay_ms		= 600000,
 };
 
+#ifndef CONFIG_MACH_APQ8064_ALTEV
 /* 1. Calculate the Rtotal.
 * Rbatt : 206.78mohm  (Normal rbatt was 200mohm)
 * ( = default_rbatt_mohm X cut off voltage level ) from Rbatt and OCV table
@@ -911,6 +936,7 @@ apq8064_pm8921_bms_pdata __devinitdata = {
 	.wlc_is_plugged			= wireless_charger_is_plugged,
 #endif
 };
+#endif /* CONFIG_MACH_APQ8064_ALTEV */
 
 static unsigned int keymap[] = {
 	KEY(0, 0, KEY_VOLUMEUP),
@@ -984,8 +1010,10 @@ apq8064_pm8921_platform_data __devinitdata = {
 	.misc_pdata		= &apq8064_pm8921_misc_pdata,
 //	.leds_pdata		= &apq8064_pm8921_leds_pdata,
 	.adc_pdata		= &apq8064_pm8921_adc_pdata,
+#ifndef CONFIG_MACH_APQ8064_ALTEV
 	.charger_pdata		= &apq8064_pm8921_chg_pdata,
 	.bms_pdata		= &apq8064_pm8921_bms_pdata,
+#endif
 	.ccadc_pdata		= &apq8064_pm8xxx_ccadc_pdata,
 #if defined (CONFIG_PMIC8XXX_VIBRATOR) || ((CONFIG_MACH_APQ8064_AWIFI) && (CONFIG_TSPDRV))
 	.vibrator_pdata     =   &pm8xxx_vibrator_pdata,
@@ -1028,9 +1056,7 @@ static struct msm_ssbi_platform_data apq8064_ssbi_pm8821_pdata __devinitdata = {
 	},
 };
 
-#if defined(CONFIG_BATTERY_MAX17043) || defined(CONFIG_BATTERY_MAX17047) || defined(CONFIG_BATTERY_MAX17048)
-#define FUEL_GAUGE_INT_N	36
-
+#if defined(CONFIG_BATTERY_MAX17043) || defined(CONFIG_BATTERY_MAX17047) || defined(CONFIG_BATTERY_MAX17048) || defined(CONFIG_BQ24262_CHARGER)
 #define I2C_SURF 1
 #define I2C_FFA  (1 << 1)
 #define I2C_RUMI (1 << 2)
@@ -1043,6 +1069,11 @@ struct i2c_registry {
 	struct i2c_board_info *info;
 	int                    len;
 };
+
+#endif
+
+#if defined(CONFIG_BATTERY_MAX17043) || defined(CONFIG_BATTERY_MAX17047) || defined(CONFIG_BATTERY_MAX17048)
+#define FUEL_GAUGE_INT_N	36
 
 /* START: dukyong.kim@lge.com 2012-01-16 Implement Quickstart for Test Mode and SOC Accurency */
 #if 0
@@ -1057,12 +1088,21 @@ static struct max17043_ocv_to_soc_data cal_data[] = {
 /* END: dukyong.kim@lge.com 2012-01-16 */
 
 /* BEGIN: hiro.kwon@lge.com 2011-12-22 RCOMP update when the temperature of the cell changes */
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+static struct max17048_platform_data max17048_pdata = {
+	.starting_rcomp =       0x64,
+	.temp_co_hot    =       -475,
+	.temp_co_cold   =       -500,
+	//.soc_cal_data =       cal_data,
+};
+#else
 static struct max17048_platform_data max17048_pdata = {
 	.starting_rcomp	=	0x60,
 	.temp_co_hot	=	-725,
 	.temp_co_cold	=	-675,
 	//.soc_cal_data	=	cal_data,
 };
+#endif
 /* END: hiro.kwon@lge.com 2011-12-22 */
 static struct i2c_board_info max17048_i2c_info[] = {
 	{
@@ -1096,6 +1136,50 @@ void __init lge_add_i2c_pm_subsystem_devices(void)
 
 #endif // CONFIG_BATTERY_MAX1704x
 
+#ifdef CONFIG_BQ24262_CHARGER
+
+#define BQ24262_I2C_INT_GPIO      52
+
+static struct bq24262_platform_data bq24262_pdata = {
+	.int_gpio = BQ24262_I2C_INT_GPIO,
+	.chg_current_ma = 1500,
+	.term_current_ma = 200,
+	.regulation_mV = 4320,
+	.temp_level_1 = 550,
+	.temp_level_2 = 450,
+	.temp_level_3 = 420,
+	.temp_level_4 = -50,
+	.temp_level_5 = -100,
+	.thermal_mitigation     = apq8064_pm8921_therm_mitigation,
+	.thermal_levels         = ARRAY_SIZE(apq8064_pm8921_therm_mitigation),
+	.max_bat_chg_current = 1800,
+};
+
+static struct i2c_board_info bq24262_i2c_info[] = {
+	{
+		I2C_BOARD_INFO(BQ24262_NAME, 0x6B),
+		.platform_data = (void *)&bq24262_pdata,
+		.irq = MSM_GPIO_TO_INT(BQ24262_I2C_INT_GPIO),
+	}
+};
+
+static struct i2c_registry altev_i2c_charger_subsystem __initdata = {
+	I2C_SURF | I2C_FFA | I2C_LIQUID | I2C_RUMI,
+	APQ_8064_GSBI5_QUP_I2C_BUS_ID,
+	bq24262_i2c_info,
+	ARRAY_SIZE(bq24262_i2c_info),
+};
+
+void __init lge_add_i2c_pm_subsystem_charger_devices(void)
+{
+
+	/* Run the array and install devices as appropriate */
+	i2c_register_board_info(altev_i2c_charger_subsystem.bus,
+				altev_i2c_charger_subsystem.info,
+				altev_i2c_charger_subsystem.len);
+}
+#endif
+
 void __init apq8064_init_pmic(void)
 {
 	pmic_reset_irq = PM8921_IRQ_BASE + PM8921_RESOUT_IRQ;
@@ -1122,10 +1206,12 @@ void __init apq8064_init_pmic(void)
 /* LGE_S jungshik.park@lge.com 2012-04-18 for lge battery type */
 	if (machine_is_apq8064_mtp()) {
 		apq8064_pm8921_bms_pdata.battery_type = BATT_PALLADIUM;
+#ifndef CONFIG_MACH_APQ8064_ALTEV
 	} else if (machine_is_apq8064_liquid()) {
 		apq8064_pm8921_bms_pdata.battery_type = BATT_DESAY;
 	} else if (machine_is_apq8064_cdp()) {
 		apq8064_pm8921_chg_pdata.has_dc_supply = true;
+#endif
 	}
 /* LGE_E jungshik.park@lge.com 2012-04-18 for lge battery type */
 #endif

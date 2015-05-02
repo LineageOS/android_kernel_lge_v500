@@ -208,6 +208,9 @@ void __init configure_apq8064_pm8917_power_grid(void);
 #define MAX17048_FUELGAUGE_I2C_ADDR				0x36
 void __init lge_add_i2c_pm_subsystem_devices(void);
 #endif
+#ifdef CONFIG_BQ24262_CHARGER
+void __init lge_add_i2c_pm_subsystem_charger_devices(void);
+#endif
 
 enum {
 	SX150X_EPM,

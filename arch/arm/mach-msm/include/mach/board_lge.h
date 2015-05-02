@@ -73,6 +73,7 @@ typedef enum {
 	NO_INIT_CABLE = 0,
 	CABLE_56K,
 	CABLE_130K,
+	CABLE_270K,
 	CABLE_330K,
 	CABLE_910K,
 	CABLE_OPEN,
@@ -90,6 +91,10 @@ void lge_pm_read_cable_info(void);
 acc_cable_type lge_pm_get_cable_type(void);
 unsigned lge_pm_get_ta_current(void);
 unsigned lge_pm_get_usb_current(void);
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+unsigned lge_pm_get_cable_type_adc(void);
+unsigned lge_get_board_revno_adc(void);
+#endif
 #endif
 
 #ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER

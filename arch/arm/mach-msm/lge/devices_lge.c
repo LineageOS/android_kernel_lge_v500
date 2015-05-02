@@ -153,6 +153,18 @@ hw_rev_type lge_get_board_revno(void)
     return lge_bd_rev;
 }
 
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+unsigned lge_get_board_revno_adc(void)
+{
+	struct pm8xxx_adc_chan_result result;
+
+	pm8xxx_adc_mpp_config_read(PM8XXX_AMUX_MPP_3,
+			ADC_MPP_1_AMUX6, &result);
+
+	return result.physical;
+}
+#endif
+
 #ifdef CONFIG_LGE_PM
 int lge_pm_get_cable_info(struct chg_cable_info *cable_info)
 {
@@ -280,6 +292,18 @@ acc_cable_type lge_pm_get_cable_type(void)
 {
 	return lge_cable_info.cable_type;
 }
+
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+unsigned lge_pm_get_cable_type_adc(void)
+{
+	struct pm8xxx_adc_chan_result result;
+
+	pm8xxx_adc_mpp_config_read(PM8XXX_AMUX_MPP_12,
+			ADC_MPP_1_AMUX6, &result);
+
+	return result.physical;
+}
+#endif
 
 unsigned lge_pm_get_ta_current(void)
 {

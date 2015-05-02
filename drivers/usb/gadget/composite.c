@@ -30,6 +30,9 @@
 #ifdef CONFIG_LGE_PM
 #include <mach/board_lge.h>
 #endif
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+#include <linux/power/bq24262_charger.h>
+#endif
 
 /*
  * The code in this file is utility code, used to build a gadget driver
@@ -40,6 +43,14 @@
 
 /* big enough to hold our biggest descriptor */
 #define USB_BUFSIZ	4096
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+extern int vzw_fast_chg_ma;
+bool usb_connected_flag = false;
+EXPORT_SYMBOL(usb_connected_flag);
+
+bool usb_configured_flag = false;
+EXPORT_SYMBOL(usb_configured_flag);
+#endif
 
 static struct usb_composite_driver *composite;
 static int (*composite_gadget_bind)(struct usb_composite_dev *cdev);
@@ -1117,6 +1128,16 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 
 	/* we handle all standard USB descriptors */
 	case USB_REQ_GET_DESCRIPTOR:
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+		if (!usb_connected_flag){
+			usb_connected_flag = true;
+			pr_info("%s: usb_connected_flag set to TURE!! \n", __func__);
+
+			//forcibly set normal charging status
+			vzw_fast_chg_ma = 1100;
+			set_vzw_charging_state();
+		}
+#endif
 		if (ctrl->bRequestType != USB_DIR_IN)
 			goto unknown;
 		switch (w_value >> 8) {
@@ -1196,6 +1217,13 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 		spin_lock(&cdev->lock);
 		value = set_config(cdev, ctrl, w_value);
 		spin_unlock(&cdev->lock);
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+		usb_configured_flag = true;
+		pr_info("%s: usb_configured_flag set to TRUE!!\n", __func__);
+		//forcibly set normal charging status
+		vzw_fast_chg_ma = 1100;
+		set_vzw_charging_state();
+#endif
 		break;
 	case USB_REQ_GET_CONFIGURATION:
 		if (ctrl->bRequestType != USB_DIR_IN)

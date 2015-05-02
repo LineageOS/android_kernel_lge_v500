@@ -2215,7 +2215,7 @@ static struct platform_device qcedev_device = {
 };
 #endif
 
-#if 0 /* sangyup.kim@lge.com To remove mdm modem */
+#ifdef CONFIG_MACH_APQ8064_ALTEV /* sangyup.kim@lge.com To remove mdm modem */
 static struct mdm_vddmin_resource mdm_vddmin_rscs = {
 	.rpm_id = MSM_RPM_ID_VDDMIN_GPIO,
 	.ap2mdm_vddmin_gpio = 30,
@@ -2226,7 +2226,7 @@ static struct mdm_vddmin_resource mdm_vddmin_rscs = {
 
 static struct gpiomux_setting mdm2ap_status_gpio_run_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
-	.drv = GPIOMUX_DRV_8MA,
+	.drv = GPIOMUX_DRV_2MA,
 	.pull = GPIOMUX_PULL_NONE,
 };
 
@@ -2235,6 +2235,7 @@ static struct mdm_platform_data mdm_platform_data = {
 	.ramdump_delay_ms = 2000,
 	.early_power_on = 1,
 	.sfr_query = 1,
+	.send_shdn = 1,
 	.vddmin_resource = &mdm_vddmin_rscs,
 	.peripheral_platform_device = &apq8064_device_hsic_host,
 	.ramdump_timeout_ms = 120000,
@@ -2292,16 +2293,20 @@ static struct mdm_platform_data sglte2_mdm_platform_data = {
 	.sysmon_subsys_id_valid = 1,
 	.sysmon_subsys_id = SYSMON_SS_EXT_MODEM,
 	.no_a2m_errfatal_on_ssr = 1,
+	.subsys_name = "external_modem_mdm",
 };
 
 static struct mdm_platform_data sglte2_qsc_platform_data = {
 	.mdm_version = "3.0",
 	.ramdump_delay_ms = 2000,
+	/* delay between two PS_HOLDs */
+	.ps_hold_delay_ms = 500,
 	.ramdump_timeout_ms = 600000,
 	.no_powerdown_after_ramdumps = 1,
 	.image_upgrade_supported = 1,
 	.no_a2m_errfatal_on_ssr = 1,
-	.no_reset_on_first_powerup = 1,
+	.kpd_not_inverted = 1,
+	.subsys_name = "external_modem",
 };
 #endif
 
@@ -2875,6 +2880,9 @@ static struct platform_device gpio_ir_recv_pdev = {
 static struct platform_device *common_not_mpq_devices[] __initdata = {
 	&apq8064_device_qup_i2c_gsbi1,
 	&apq8064_device_qup_i2c_gsbi3,
+#ifdef CONFIG_BQ24262_CHARGER
+	&apq8064_device_qup_i2c_gsbi5,
+#endif
 #if defined(CONFIG_SND_SOC_TPA2028D_DUAL_SPEAKER) || (defined (CONFIG_MACH_LGE)&& defined(CONFIG_TOUCHSCREEN_S340010_SYNAPTICS_TK))
 	&apq8064_device_qup_i2c_gsbi7,
 #endif
@@ -3336,6 +3344,13 @@ static struct msm_i2c_platform_data apq8064_i2c_qup_gsbi4_pdata = {
 	.src_clk_rate = 24000000,
 };
 
+#if defined(CONFIG_BQ24262_CHARGER)
+static struct msm_i2c_platform_data apq8064_i2c_qup_gsbi5_pdata = {
+	.clk_freq = 100000,
+	.src_clk_rate = 24000000,
+};
+#endif
+
 #if defined (CONFIG_SND_SOC_TPA2028D_DUAL_SPEAKER)
 static struct msm_i2c_platform_data apq8064_i2c_qup_gsbi7_pdata = {
 	.clk_freq = 384000,
@@ -3409,6 +3424,10 @@ static void __init apq8064_i2c_init(void)
 #if !defined(CONFIG_MACH_LGE)
 	mpq8064_device_qup_i2c_gsbi5.dev.platform_data =
 					&mpq8064_i2c_qup_gsbi5_pdata;
+#endif
+#if defined(CONFIG_BQ24262_CHARGER)
+	apq8064_device_qup_i2c_gsbi5.dev.platform_data =
+				&apq8064_i2c_qup_gsbi5_pdata;
 #endif
 
 //sangwooha.ha@lge.com 20120813 GK ES3 UART bring up
@@ -4005,6 +4024,17 @@ static struct msm_serial_hs_platform_data apq8064_uartdm_gsbi4_pdata;
 #endif
 #endif
 
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+static struct msm_serial_hs_platform_data apq8064_uartdm_gsbi4_pdata = {
+//      .gpio_config    = configure_uartdm_gsbi4_gpios, build error - temporaty code
+        .config_gpio    = 4,
+        .uart_tx_gpio   = 10,
+        .uart_rx_gpio   = 11,
+        .uart_cts_gpio  = 12,
+        .uart_rfr_gpio  = 13,
+};
+#endif
+
 static void __init apq8064ab_update_retention_spm(void)
 {
 	int i;
@@ -4024,7 +4054,7 @@ static void __init apq8064ab_update_retention_spm(void)
 
 static void __init apq8064_common_init(void)
 {
-#if 0 /* sangyup.kim@lge.com To remove mdm modem */
+#ifdef CONFIG_MACH_APQ8064_ALTEV /* sangyup.kim@lge.com To remove mdm modem */
 	u32 platform_version = socinfo_get_platform_version();
 #endif
 
@@ -4074,6 +4104,9 @@ static void __init apq8064_common_init(void)
 #endif
 #if defined(CONFIG_BATTERY_MAX17043) || defined(CONFIG_BATTERY_MAX17047) || defined(CONFIG_BATTERY_MAX17048)
 	lge_add_i2c_pm_subsystem_devices();
+#endif
+#ifdef CONFIG_BQ24262_CHARGER
+	lge_add_i2c_pm_subsystem_charger_devices();
 #endif
 
 #if !defined(CONFIG_MACH_LGE)
@@ -4131,7 +4164,7 @@ static void __init apq8064_common_init(void)
 	apq8064_pm8xxx_gpio_mpp_init();
 	apq8064_init_mmc();
 
-#if 0 /* sangyup.kim@lge.com To remove mdm modem */
+#ifdef CONFIG_MACH_APQ8064_ALTEV /* sangyup.kim@lge.com To remove mdm modem */
 	if (machine_is_apq8064_mtp()) {
 		if (socinfo_get_platform_subtype() == PLATFORM_SUBTYPE_DSDA2) {
 			amdm_8064_device.dev.platform_data =
@@ -4160,10 +4193,10 @@ static void __init apq8064_common_init(void)
 			platform_device_register(&i2s_mdm_8064_device);
 		} else {
 			mdm_8064_device.dev.platform_data = &mdm_platform_data;
-			//LGE_Change_S jaseseung.noh MDM2AP_PBLRDY set to 81
-				mdm_8064_device.resource[6].start = 81; // MDM2AP_PBLRDY
-				mdm_8064_device.resource[6].end = 81; // MDM2AP_PBLRDY
-			//LGE_Change_E jaseseung.noh MDM2AP_PBLRDY set to 81
+			//LGE_Change_S jaseseung.noh MDM2AP_PBLRDY set to 81 -> altev 46
+				mdm_8064_device.resource[6].start = 46; // MDM2AP_PBLRDY
+				mdm_8064_device.resource[6].end = 46; // MDM2AP_PBLRDY
+			//LGE_Change_E jaseseung.noh MDM2AP_PBLRDY set to 81 -> altev 46
 			platform_device_register(&mdm_8064_device);
 		}
 	}
@@ -4322,11 +4355,15 @@ static void __init apq8064_cdp_init(void)
 	}
 #endif /* LGE Not Used */
 //2013-05-29 goensoo.kim@lge.com [AWIFI/Touch] Enable atmel touchscreen driver for REV_A [START]
+#ifndef CONFIG_MACH_APQ8064_ALTEV
 	if (lge_get_board_revno() >= HW_REV_A) {
 		apq8064_awifi_init_input();
 	} else {
 		apq8064_init_input();
 	}
+#else
+	apq8064_awifi_init_input();
+#endif
 //2013-05-29 goensoo.kim@lge.com [AWIFI/Touch] Enable atmel touchscreen driver for REV_A [END]
 	apq8064_init_misc();
 #ifdef CONFIG_LGE_ECO_MODE
