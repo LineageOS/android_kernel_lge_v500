@@ -270,13 +270,6 @@ static struct fsa8008_platform_data lge_hs_pdata_fsa8008 = {
 	.gpio_jpole  = GPIO_EARPOL_DETECT,
 	.gpio_key    = GPIO_EAR_KEY_INT,
 	.set_headset_mic_bias = NULL,
-	//                                                                                           
-	#if defined(CONFIG_MACH_APQ8064_AWIFI) || defined(CONFIG_MACH_APQ8064_ALTEV)
-	.gpio_power_en = GPIO_2V8_AUDIO_PWR_EN,
-	.gpio_hph_en = GPIO_HPH_3V0_EN,
-	#endif
-	//                                                                                         
-
 	.latency_for_detection = 75,
 };
 
