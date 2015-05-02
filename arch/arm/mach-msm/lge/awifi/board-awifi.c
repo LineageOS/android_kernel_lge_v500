@@ -1209,7 +1209,7 @@ static struct lp5521_led_pattern board_led_patterns[] = {
 		.size_g = ARRAY_SIZE(mode7_green),
 		.size_b = ARRAY_SIZE(mode7_blue),
 	},
-#if defined(CONFIG_MACH_APQ8064_GK_KR) || defined(CONFIG_MACH_APQ8064_GKATT) || defined(CONFIG_MACH_APQ8064_GKGLOBAL) || defined(CONFIG_MACH_APQ8064_GV_KR) || defined(CONFIG_MACH_APQ8064_AWIFI)
+#if defined(CONFIG_MACH_APQ8064_GK_KR) || defined(CONFIG_MACH_APQ8064_GKATT) || defined(CONFIG_MACH_APQ8064_GKGLOBAL) || defined(CONFIG_MACH_APQ8064_GV_KR) || defined(CONFIG_MACH_APQ8064_AWIFI) || defined(CONFIG_MACH_APQ8064_ALTEV)
 	/* for dummy pattern IDs (defined LGLedRecord.java) */
 	{
 		/* ID_ALARM = 8 */
@@ -1355,7 +1355,7 @@ static struct i2c_board_info lp5521_board_info[] __initdata = {
 		.platform_data = &lp5521_pdata,
 	},
 };
-#if defined(CONFIG_MACH_APQ8064_GKATT) || defined(CONFIG_MACH_APQ8064_GKGLOBAL) || defined(CONFIG_MACH_APQ8064_AWIFI)
+#if defined(CONFIG_MACH_APQ8064_GKATT) || defined(CONFIG_MACH_APQ8064_GKGLOBAL) || defined(CONFIG_MACH_APQ8064_AWIFI) || defined(CONFIG_MACH_APQ8064_ALTEV)
 static struct i2c_board_info lp5521_board_info_rev_f[] __initdata = {
 	{
 		I2C_BOARD_INFO("lp5521", 0x33),
@@ -2343,7 +2343,7 @@ static struct msm_thermal_data msm_thermal_pdata = {
 #endif
 	.temp_hysteresis_degC = 10,
 	.freq_step = 2,
-#if defined(CONFIG_MACH_APQ8064_AWIFI)
+#if defined(CONFIG_MACH_APQ8064_AWIFI) || defined(CONFIG_MACH_APQ8064_ALTEV)
         // It is cause of MPdecision problem. so, changed to Higher value than Thermal_deamon's setting
 	.core_limit_temp_degC = 120,
 #else
@@ -3960,7 +3960,7 @@ static void __init apq8064_pm8917_pdata_fixup(void)
 }
 #endif
 
-#if !defined(CONFIG_MACH_APQ8064_AWIFI)
+#if !defined(CONFIG_MACH_APQ8064_AWIFI) && !defined(CONFIG_MACH_APQ8064_ALTEV)
 static void __init gvdcm_uart_clock_update(void)
 {
 	static char *msm_serial_hsl_0 = "msm_serial_hsl.0";
@@ -4086,7 +4086,7 @@ static void __init apq8064_common_init(void)
 		platform_device_register(&apq8064_pm8921_device_rpm_regulator);
 	if (msm_xo_init())
 		pr_err("Failed to initialize XO votes\n");
-#if !defined(CONFIG_MACH_APQ8064_AWIFI)
+#if !defined(CONFIG_MACH_APQ8064_AWIFI) && !defined(CONFIG_MACH_APQ8064_ALTEV)
 	if(lge_get_uart_mode())
 		gvdcm_uart_clock_update();
 #endif

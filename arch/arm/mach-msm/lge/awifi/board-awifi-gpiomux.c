@@ -2359,4 +2359,10 @@ void __init apq8064_init_gpiomux(void)
 			ARRAY_SIZE(gpio_func_reserved_pin_config));
 #endif
 
+//20120112 jungyub.jee@lge.com SD detect change
+/* Set specified GPIO configure to IN/PD in suspend */
+#ifdef CONFIG_MACH_APQ8064_ALTEV
+	msm_gpiomux_install(gpio_func_reserved_pin_config,
+			ARRAY_SIZE(gpio_func_reserved_pin_config));
+#endif
 }

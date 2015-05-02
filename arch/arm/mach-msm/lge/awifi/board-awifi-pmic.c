@@ -1051,7 +1051,7 @@ static struct msm_ssbi_platform_data apq8064_ssbi_pm8821_pdata __devinitdata = {
 	},
 };
 
-#if defined(CONFIG_BATTERY_MAX17043) || defined(CONFIG_BATTERY_MAX17047) || defined(CONFIG_BATTERY_MAX17048)
+#if defined(CONFIG_BATTERY_MAX17043) || defined(CONFIG_BATTERY_MAX17047) || defined(CONFIG_BATTERY_MAX17048) || defined(CONFIG_BQ24262_CHARGER)
 #define FUEL_GAUGE_INT_N	36
 
 #define I2C_SURF 1
