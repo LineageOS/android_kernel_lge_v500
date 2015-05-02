@@ -77,6 +77,11 @@ struct hsd_info {
 	unsigned int gpio_jpole;  /* JPOLE : 3pole or 4pole */
 	unsigned int gpio_key;    /* S/E button */
 
+#if defined(CONFIG_MACH_APQ8064_AWIFI)
+	unsigned int gpio_power_en; /* EN : to enable 2V8_AUDIO_POWER_LDO */
+	unsigned int gpio_hph_en; /* EN : to enable 3V0_HPH_LDO */
+#endif
+
 	/* callback function which is initialized while probing */
 	void (*set_headset_mic_bias)(int enable);
 	void (*set_uart_console)(int enable);
@@ -186,12 +191,23 @@ static void insert_headset(struct hsd_info *hi)
 
 	gpio_set_value_cansleep(hi->gpio_mic_en, 1);
 
+#if defined(CONFIG_MACH_APQ8064_AWIFI)
+	gpio_set_value_cansleep(hi->gpio_power_en, 1);
+	gpio_set_value_cansleep(hi->gpio_hph_en, 1);
+#endif
+
 	msleep(hi->latency_for_detection);
 
 	earjack_type = gpio_get_value_cansleep(hi->gpio_jpole);
 
 	if (earjack_type == HEADSET_3POLE) {
 		HSD_DBG("3 polarity earjack");
+
+#if defined(CONFIG_MACH_APQ8064_AWIFI)
+		if (gpio_get_value(hi->gpio_power_en) != 0){
+			gpio_set_value_cansleep(hi->gpio_power_en, 0);
+		}
+#endif
 
 		atomic_set(&hi->is_3_pole_or_not, 1);
 
