@@ -34,6 +34,11 @@ struct fsa8008_platform_data {
 	/* callback function which is initialized while probing */
 	void (*set_headset_mic_bias)(int enable);
 	void (*set_uart_console)(int enable);
+
+#if defined(CONFIG_MACH_APQ8064_AWIFI)
+	unsigned int gpio_power_en;
+	unsigned int gpio_hph_en;
+#endif
 };
 
 #endif /* __HDS_FSA8008_H__ */
