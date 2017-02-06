@@ -342,9 +342,14 @@ static struct msm_bus_scale_pdata mdp_bus_scale_pdata = {
 static struct msm_panel_common_pdata mdp_pdata = {
 	.gpio = MDP_VSYNC_GPIO,
 	.mdp_max_clk = 266667000,
-	.mdp_max_bw = 3080000000UL,
-	.mdp_bw_ab_factor = 160,
-	.mdp_bw_ib_factor = 180,
+	.mdp_max_bw = 2000000000u,
+#if defined(CONFIG_FB_MSM_MIPI_LGIT_VIDEO_WUXGA_PT)
+	.mdp_bw_ab_factor = 115,
+	.mdp_bw_ib_factor = 290,
+#else
+	.mdp_bw_ab_factor = 200,
+	.mdp_bw_ib_factor = 210,
+#endif
 	.mdp_bus_scale_table = &mdp_bus_scale_pdata,
 	.mdp_rev = MDP_REV_44,
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
