@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa5d592f_f75ec3e8",
+        "filename": "arch/arm/mach-msm/lge/awifi/board-awifi-sound.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 12604
+      },
+      "writtenOn": "2017-03-02T19:05:29Z",
+      "side": 0,
+      "message": "The v500 does not need this either?",
+      "range": {
+        "startLine": 275,
+        "startChar": 0,
+        "endLine": 276,
+        "endChar": 32
+      },
+      "revId": "44e18317f629cc461320dd48c7df12acf1e659fe",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}
