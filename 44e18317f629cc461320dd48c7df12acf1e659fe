@@ -94,6 +94,30 @@
       "revId": "44e18317f629cc461320dd48c7df12acf1e659fe",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa5d592f_57e46f0c",
+        "filename": "arch/arm/mach-msm/lge/awifi/board-awifi-sound.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 3671
+      },
+      "writtenOn": "2017-03-02T19:28:13Z",
+      "side": 0,
+      "message": "These struct member\u0027s don\u0027t exist in our current driver. The alternative here is to update the driver from the VK810 source drop. If I can avoid making a larger footprint in the kernel to bring VK810, that\u0027s what I\u0027d prefer, but I\u0027m not sure if it\u0027ll be needed yet. Headphone detection \"kinda\" works right now, so I\u0027m unsure yet on it.",
+      "parentUuid": "fa5d592f_171717ef",
+      "range": {
+        "startLine": 275,
+        "startChar": 0,
+        "endLine": 276,
+        "endChar": 32
+      },
+      "revId": "44e18317f629cc461320dd48c7df12acf1e659fe",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
     }
   ]
 }
