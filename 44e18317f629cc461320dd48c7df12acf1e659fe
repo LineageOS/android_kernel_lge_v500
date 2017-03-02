@@ -70,6 +70,30 @@
       "revId": "44e18317f629cc461320dd48c7df12acf1e659fe",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa5d592f_171717ef",
+        "filename": "arch/arm/mach-msm/lge/awifi/board-awifi-sound.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 12604
+      },
+      "writtenOn": "2017-03-02T19:19:53Z",
+      "side": 0,
+      "message": "But, why remove compatibility for SWITCH_FSA8008?",
+      "parentUuid": "fa5d592f_571d8f0e",
+      "range": {
+        "startLine": 275,
+        "startChar": 0,
+        "endLine": 276,
+        "endChar": 32
+      },
+      "revId": "44e18317f629cc461320dd48c7df12acf1e659fe",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
     }
   ]
 }
