@@ -159,7 +159,7 @@ static int __init mipi_video_lgit_wuxga_pt_init(void)
 	pinfo.wait_cycle = 0;
 	pinfo.bpp = 24;
 	pinfo.lcdc.border_clr = 0;         /* blk */
-	pinfo.lcdc.underflow_clr = 0x00;   /* blk */
+	pinfo.lcdc.underflow_clr = 0xff1493;   /* hot pink */
 	pinfo.lcdc.hsync_skew = 0;
 	pinfo.bl_max = 0xFF;
 	pinfo.bl_min = 0;
