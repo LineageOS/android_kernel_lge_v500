@@ -368,7 +368,6 @@ struct msmsdcc_host {
 
 	unsigned int		clk_rate;	/* Current clock rate */
 	unsigned int		pclk_rate;
-	unsigned int		ddr_doubled_clk_rate;
 
 	u32			pwr;
 	struct mmc_platform_data *plat;
@@ -407,6 +406,7 @@ struct msmsdcc_host {
 	bool io_pad_pwr_switch;
 	bool tuning_in_progress;
 	bool tuning_needed;
+	bool tuning_done;
 	bool en_auto_cmd19;
 	bool sdio_gpio_lpm;
 	bool irq_wake_enabled;
@@ -423,6 +423,7 @@ struct msmsdcc_host {
 	struct device_attribute	max_bus_bw;
 	struct device_attribute	polling;
 	struct device_attribute idle_timeout;
+	int saved_tuning_phase;
 	struct device_attribute auto_cmd19_attr;
 };
 
