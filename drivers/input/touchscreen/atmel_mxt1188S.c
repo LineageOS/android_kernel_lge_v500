@@ -27,9 +27,6 @@
 #include <linux/slab.h>
 #include <linux/regulator/consumer.h>
 #include <linux/gpio.h>
-#ifdef CONFIG_HAS_EARLYSUSPEND
-#include <linux/earlysuspend.h>
-#endif
 #include <linux/time.h>
 #include <linux/uaccess.h>
 #include <linux/file.h>
@@ -253,14 +250,6 @@ static bool mxt_regulator_on = false;
 static bool selftest_enable;
 static bool selftest_show;
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-/* Early-suspend level */
-#define MXT_SUSPEND_LEVEL 50
-
-static void mxt_early_suspend(struct early_suspend *h);
-static void mxt_late_resume(struct early_suspend *h);
-#endif
-
 struct mxt_info {
 	u8 family_id;
 	u8 variant_id;
@@ -477,14 +466,11 @@ struct mxt_data {
 
 	bool suspended_2nd;
 
-	//struct wake_lock mxt_wake_lock;
+	struct wake_lock mxt_wake_lock;
 
 #ifdef CUST_A_TOUCH
 	struct accuracy_filter_info	accuracy_filter;
 	struct touch_data ts_data;
-#endif
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	struct early_suspend early_suspend;
 #endif
 	u8 charger_state;
 #ifdef CHANGE_PEN_CFG
@@ -6080,7 +6066,7 @@ static int __devinit mxt_probe(struct i2c_client *client,
 
 	test_data = data;
 
-	//wake_lock_init(&data->mxt_wake_lock, WAKE_LOCK_SUSPEND, "mxt_wake_lock");
+	wake_lock_init(&data->mxt_wake_lock, WAKE_LOCK_SUSPEND, "mxt_wake_lock");
 
 	error = gpio_request(data->pdata->gpio_reset, "touch_reset");
 	if (error < 0) {
@@ -6148,17 +6134,11 @@ static int __devinit mxt_probe(struct i2c_client *client,
 		data->accuracy_filter.touch_max_count = one_sec / 2;
 	}
 #endif
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	data->early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN + MXT_SUSPEND_LEVEL;
-	data->early_suspend.suspend = mxt_early_suspend;
-	data->early_suspend.resume = mxt_late_resume;
-	register_early_suspend(&data->early_suspend);
-#endif
 
-//	data->fb_notif.notifier_call = fb_notifier_callback;
-//	error = fb_register_client(&data->fb_notif);
-//	if (error)
-//		dev_err(&client->dev, "Unable to register fb_notifier: %d\n", error);
+	data->fb_notif.notifier_call = fb_notifier_callback;
+	error = fb_register_client(&data->fb_notif);
+	if (error)
+		dev_err(&client->dev, "Unable to register fb_notifier: %d\n", error);
 
 	data->chargerlogo = false;
 
@@ -6232,10 +6212,6 @@ static int __devexit mxt_remove(struct i2c_client *client)
 {
 	struct mxt_data *data = i2c_get_clientdata(client);
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	unregister_early_suspend(&data->early_suspend);
-#endif
-
 	if (data->mem_access_attr.attr.name)
 		sysfs_remove_bin_file(&client->dev.kobj,
 				      &data->mem_access_attr);
@@ -6257,7 +6233,7 @@ static int __devexit mxt_remove(struct i2c_client *client)
 	return 0;
 }
 
-#if 0//def CONFIG_PM_SLEEP
+#ifdef CONFIG_PM_SLEEP
 //static int mxt_suspend(struct device *dev)
 static int mxt_fb_suspend(struct mxt_data *data)
 {
@@ -6322,81 +6298,6 @@ static int mxt_fb_resume(struct mxt_data *data)
 }
 #endif
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static void mxt_early_suspend(struct early_suspend *h)
-{
-	struct mxt_data *data = container_of(h, struct mxt_data, early_suspend);
-	struct input_dev *input_dev = data->input_dev;
-
-	dev_info(&data->client->dev, "%s\n", __func__);
-
-	if(data->chargerlogo)
-		return ;
-
-	mutex_lock(&input_dev->mutex);
-
-	if (data->smart_cover_enable) {
-		if (gpio_get_value(HALL_IC_GPIO) == 0)
-			suspended_due_to_smart_cover = true;
-	}
-	if (input_dev->users)	mxt_stop(data);
-	msleep(50);
-	mutex_unlock(&input_dev->mutex);
-
-#ifdef CONFIG_TOUCHSCREEN_LGE_LPWG
-//	if (device_may_wakeup(dev) && data->lpwg_mode && suspended_due_to_smart_cover == false) {
-	if (data->lpwg_mode && suspended_due_to_smart_cover == false) {
-#else
-//	if (device_may_wakeup(dev) && data->mxt_knock_on_enable && suspended_due_to_smart_cover == false) {
-	if (data->mxt_knock_on_enable && suspended_due_to_smart_cover == false) {
-#endif
-		touch_enable_irq_wake(data->irq);
-
-		wake_lock_timeout(&touch_wake_lock, msecs_to_jiffies(3000));
-		dev_info(&data->client->dev, "enable irq wake");
-	}
-
-	//data->suspended_2nd = true;
-
-	return;
-
-}
-
-static void mxt_late_resume(struct early_suspend *h)
-{
-
-	struct mxt_data *data = container_of(h, struct mxt_data, early_suspend);
-	struct input_dev *input_dev = data->input_dev;
-
-	dev_info(&data->client->dev, "%s\n", __func__);
-
-#ifdef CONFIG_TOUCHSCREEN_LGE_LPWG
-//	if (device_may_wakeup(dev) && data->lpwg_mode && suspended_due_to_smart_cover == false) {
-	if (data->lpwg_mode && suspended_due_to_smart_cover == false) {
-#else
-//	if (device_may_wakeup(dev) && data->mxt_knock_on_enable && suspended_due_to_smart_cover == false) {
-	if (data->mxt_knock_on_enable && suspended_due_to_smart_cover == false) {
-#endif
-		touch_disable_irq_wake(data->irq);
-		dev_info(&data->client->dev, "disable irq wake");
-	}
-
-	mutex_lock(&input_dev->mutex);
-
-	if (input_dev->users)
-		mxt_start(data);
-
-	suspended_due_to_smart_cover = false;
-	data->suspended_2nd = false;
-	mutex_unlock(&input_dev->mutex);
-	return ;
-
-
-}
-#endif
-
-
-#if 0
 int fb_notifier_callback(struct notifier_block *self, unsigned long event, void *data)
 {
        struct fb_event *evdata = data;
@@ -6412,7 +6313,6 @@ int fb_notifier_callback(struct notifier_block *self, unsigned long event, void 
        }
        return 0;
 }
-#endif
 
 static int mxt_suspend(struct device *dev) {
 
@@ -6457,15 +6357,7 @@ static int mxt_resume(struct device *dev) {
 	return 0;
 }
 
-
-#if 1//def CONFIG_HAS_EARLYSUSPEND
-static const struct dev_pm_ops mxt_pm_ops = {
-	.suspend	= mxt_suspend,
-	.resume		= mxt_resume,
-};
-#else
 static SIMPLE_DEV_PM_OPS(mxt_pm_ops, mxt_suspend, mxt_resume);
-#endif
 
 static void mxt_shutdown(struct i2c_client *client)
 {
