@@ -74,36 +74,6 @@ config LGE_CRASH_HANDLER
 	help
 	  LGE Crash Handler
 
-config LGE_SUSPEND_TIME
-    tristate "Log time spent in suspend"
-    default y
-    depends on MACH_LGE
-	help
-	  Prints the time spent in suspend in the kernel log, and
-	  keeps statistics on the time spent in suspend in
-	  /sys/kernel/debug/suspend_time
-
-	  This patch serves same function with google's suspend_time.c
-
-config LGE_EARLYSUSPEND_FUNC_TIME
-    tristate "Log time spent in each earlysuspend call"
-    default y
-    depends on MACH_LGE
-	help
-	  Keeps the time statistics spent in each earlysuspend in 
-	  /sys/kernel/debug/earlysuspend_func_time.
-	  This file shows the average and max tiem of each 
-	  earlysuspend/lateresume function.
-
-config LGE_SUSPEND_AUTOTEST
-    tristate "Test suspend/resume and earlysuspend/lateresume automatically"
-    default y
-    depends on MACH_LGE && SUSPEND && EARLYSUSPEND
-	help
-      This option will let you suspend your machine, and make it wake up
-	  a few seconds later using an timer automatically.  
-	  Enable this with a kernel parameter by sysfs.
-
 
 config LGE_BITE_RESET
         tristate "Disable PS_HOLD reset"

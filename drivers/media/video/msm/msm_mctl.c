@@ -698,9 +698,6 @@ static void msm_mctl_release(struct msm_cam_media_controller *p_mctl)
 		pm_qos_remove_request(&p_mctl->pm_qos_req_list);
 
 		p_mctl->opencnt--;
-/*                                                                        */
-	if(&(p_mctl->wake_lock.link) != NULL)
-/*                                                                      */
 		wake_unlock(&p_mctl->wake_lock);
 	}
 	mutex_unlock(&p_mctl->lock);
