@@ -27,10 +27,6 @@
 #include <linux/rtc.h>
 #include <trace/events/power.h>
 
-#ifdef CONFIG_MACH_LGE
-#include <mach/lge/lge_blocking_monitor.h>
-#endif
-
 #include "power.h"
 
 const char *const pm_states[PM_SUSPEND_MAX] = {
@@ -43,9 +39,6 @@ const char *const pm_states[PM_SUSPEND_MAX] = {
 
 static const struct platform_suspend_ops *suspend_ops;
 
-#ifdef CONFIG_MACH_LGE
-static int suspend_monitor_id;
-#endif
 /**
  * suspend_set_ops - Set the global suspend method table.
  * @ops: Suspend operations to use.
@@ -302,14 +295,7 @@ static int enter_state(suspend_state_t state)
 
  Finish:
 	pr_debug("PM: Finishing wakeup.\n");
-#ifdef CONFIG_MACH_LGE
-	start_monitor_blocking(suspend_monitor_id,
-		jiffies + usecs_to_jiffies(3000000));
-#endif
 	suspend_finish();
-#ifdef CONFIG_MACH_LGE
-	end_monitor_blocking(suspend_monitor_id);
-#endif
  Unlock:
 	mutex_unlock(&pm_mutex);
 	return error;
@@ -334,9 +320,6 @@ static void pm_suspend_marker(char *annotation)
  * Check if the value of @state represents one of the supported states,
  * execute enter_state() and update system suspend statistics.
  */
-#if defined (CONFIG_MACH_APQ8064_OMEGA) || defined (CONFIG_MACH_APQ8064_OMEGAR)
-bool suspend_marker_entry = false;
-#endif
 int pm_suspend(suspend_state_t state)
 {
 	int error;
@@ -345,9 +328,6 @@ int pm_suspend(suspend_state_t state)
 		return -EINVAL;
 
 	pm_suspend_marker("entry");
-#if defined (CONFIG_MACH_APQ8064_OMEGA) || defined (CONFIG_MACH_APQ8064_OMEGAR)
-	suspend_marker_entry = true;
-#endif
 	error = enter_state(state);
 	if (error) {
 		suspend_stats.fail++;
@@ -356,23 +336,6 @@ int pm_suspend(suspend_state_t state)
 		suspend_stats.success++;
 	}
 	pm_suspend_marker("exit");
-#if defined (CONFIG_MACH_APQ8064_OMEGA) || defined (CONFIG_MACH_APQ8064_OMEGAR)
-	suspend_marker_entry = false;
-#endif
 	return error;
 }
 EXPORT_SYMBOL(pm_suspend);
-
-#ifdef CONFIG_MACH_LGE
-static int __init create_suspend_blocking_monitor(void)
-{
-	suspend_monitor_id = create_blocking_monitor("suspend");
-
-	if (suspend_monitor_id < 0)
-		return suspend_monitor_id;
-
-	return 0;
-}
-
-late_initcall(create_suspend_blocking_monitor);
-#endif
